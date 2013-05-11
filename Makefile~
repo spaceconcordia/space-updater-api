@@ -38,7 +38,7 @@ Client : src/Client.cpp UpdaterClient.o
 	$(CXX) $(INCLUDE) $^ -o $@
 
 #
-#	Compilation for the Q6	
+#	Compilation for the Q6
 #
 #
 Q6 : UpdaterServer-Q6 Client-Q6

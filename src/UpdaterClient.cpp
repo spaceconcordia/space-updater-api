@@ -28,24 +28,26 @@ UpdaterClient::UpdaterClient(const char* socketName){
 //----------------------------------------------
 int UpdaterClient::Connect(){
     int yes = 1;                                                        // to set SO_REUSEADDR
+    remove(socketName);                                                 //Remove socket file to avoid "Already in use" error
+    
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
         perror ("error creating socket");   
-        exit(EXIT_FAILURE);
+        return -1;
     }
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
         perror("error setting SO_REUSEADDR");
-        exit(EXIT_FAILURE);
+        return -1;
     }
     if (bind(sockfd, (struct sockaddr*)&client_addr, sizeof(struct sockaddr)) == -1){
         perror ("error binding to socket");
-        exit(EXIT_FAILURE);
+        return -1;
     }   
     if (connect(sockfd, (struct sockaddr *) &host_addr, sizeof(struct sockaddr)) < 0){
-        perror ("error creating socket");   
-        exit(EXIT_FAILURE);
+        perror ("error connecting to socket");   
+        return -1;
     }
 
-    printf("Client succes\n");
+    printf("Client connection success\n");
     return 0;
 }
 //----------------------------------------------
@@ -58,11 +60,34 @@ int UpdaterClient::Disconnect(){
 //  Rollback
 //----------------------------------------------
 int UpdaterClient::Rollback(string applicationName){
+    bool isSuccess = false;
+    int BUFFER_MAX = 100;
+    char report[BUFFER_MAX];
     char buffer[applicationName.length() + 1];
     strcpy (buffer, applicationName.c_str());
     printf("%s\n", buffer);
+
     if(send(sockfd, buffer, strlen(buffer)+1, 0) == -1){
-        perror ("error creating socket");   
+        perror ("error sending data");   
         exit(EXIT_FAILURE);
+    }
+    
+    int retry  = 0;
+    while (isSuccess == false && retry < 5){
+        int recv_length = recv(sockfd, &report, 8, 0); 
+        printf("recv : %d bytes\n", recv_length);
+        printf("report : %s\n", report);
+     
+        if (strncmp(report, "SUCCESS", 7) == 0){
+            isSuccess = true;
+        }
+        retry += 1;
+    }
+    if (isSuccess == true){
+        printf("Rollback SUCCESS\n");
+        return 0;
+    }else{
+        printf("Rollback FAILURE\n");
+        return -1;
     }
 }
