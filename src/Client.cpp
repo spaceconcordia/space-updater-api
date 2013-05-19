@@ -3,7 +3,7 @@
 //  Testing the client.
 //
 //******************************************/
-#include "UpdaterClient.h"
+#include <UpdaterClient.h>
 int main(){
     UpdaterClient client("testApp1");
     UpdaterClient client2("testApp2");

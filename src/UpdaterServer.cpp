@@ -32,18 +32,27 @@ int main(int argc, char* argv[]){
     const char* path_old;
     const char* path_rollback;
 
-    if (argc < 5){   // TODO :: change path for Q6
+    if (argc < 5){
+    #ifdef allPC
         path_new      = "/home/jamg85/apps/new";
         path_current  = "/home/jamg85/apps/current";
         path_old      = "/home/jamg85/apps/old";
         path_rollback = "/home/jamg85/apps/rollback";
+    #endif
+    #ifndef allPC                                           // Q6 Paths
+        path_new      = "/home/apps/new";
+        path_current  = "/home/apps/current";
+        path_old      = "/home/apps/old";
+        path_rollback = "/home/apps/rollback";
+    #endif
     }else if (argc == 5){
-        printf("THERE\n");
         path_new      = argv[1]; 
         path_current  = argv[2]; 
         path_old      = argv[3];
         path_rollback = argv[4]; 
     }
+
+    
 
     remove(SERVER_NAME);                                                            //Remove socket file to avoid "Already in use" error
     printf("Launching UpdaterServer\n\n");

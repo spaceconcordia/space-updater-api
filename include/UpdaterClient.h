@@ -25,11 +25,15 @@ int NamedSocket(const char *name);
 
 class UpdaterClient{
     private :
+        static const char* SERVER_NAME; 
+        static const int TIMEOUT_DELAY = 4;
+        static const int MAX_RETRY = 5;
+        
         const char* socketName;
+        
         int sockfd;
         struct sockaddr_un host_addr;
         struct sockaddr_un client_addr;
-        static const char* SERVER_NAME; 
 
     public :
         UpdaterClient(const char*);

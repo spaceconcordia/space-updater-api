@@ -34,18 +34,26 @@ int UpdaterClient::Connect(){
         perror ("error creating socket");   
         return -1;
     }
+
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1){
         perror("error setting SO_REUSEADDR");
         return -1;
     }
-   struct timeval tv;
-   tv.tv_sec = 2;
-   tv.tv_usec = 0;
-   setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,(struct timeval *) &tv, sizeof(struct timeval));
+
+    struct timeval tv;
+    tv.tv_sec = TIMEOUT_DELAY;
+    tv.tv_usec = 0;
+    
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,(struct timeval *) &tv, sizeof(struct timeval)) == -1){
+        perror ("error setting SO_RCVTIMEO");
+        return -1;
+    }
+
     if (bind(sockfd, (struct sockaddr*)&client_addr, sizeof(struct sockaddr)) == -1){
         perror ("error binding to socket");
         return -1;
     }   
+
     if (connect(sockfd, (struct sockaddr *) &host_addr, sizeof(struct sockaddr)) < 0){
         perror ("error connecting to socket");   
         return -1;
@@ -79,7 +87,7 @@ int UpdaterClient::Rollback(string applicationName){
     }
     
     int retry  = 0;
-    while (isSuccess == false && retry < 5){
+    while (isSuccess == false && retry < MAX_RETRY){
         if (retry > 0){
             printf ("retry : %d\n", retry);
         }

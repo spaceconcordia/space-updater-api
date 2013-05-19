@@ -16,12 +16,14 @@ INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include
 #
 
 allPC : Client UpdaterServer
+	rm -f *.o
 
 #
 # 	Compilation for CppUTest
 #
 
 test : AllTests UpdaterServer
+	rm -f *.o
 
 AllTests: src/AllTests.cpp tests/Updater-API-test.cpp fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o $@ $^ $(LD_LIBRARIES) 
@@ -37,7 +39,7 @@ Updater.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $
 	$(CXX) $(INCLUDE) -c $< -o $@
 	
 UpdaterServer : src/UpdaterServer.cpp Updater.o fileIO.o ProcessUpdater.o
-	$(CXX) $(INCLUDE) $^ -o $@ -DTEST
+	$(CXX) $(INCLUDE) $^ -o $@ -DTEST -DallPC
 	
 UpdaterClient.o : src/UpdaterClient.cpp include/UpdaterClient.h
 	$(CXX) $(INCLUDE) -c $< -o $@
@@ -51,6 +53,7 @@ Client : src/Client.cpp UpdaterClient.o
 #
 
 Q6 : UpdaterServer-Q6 Client-Q6
+	rm -f *.o
 
 fileIO-Q6.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
 	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) -c $< -o $@
@@ -63,13 +66,18 @@ Updater-Q6.o :$(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h 
 
 UpdaterServer-Q6 : src/UpdaterServer.cpp Updater-Q6.o fileIO-Q6.o ProcessUpdater-Q6.o
 	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) $^ -o $@
+	rm -f *.o
 
 UpdaterClient-Q6.o : src/UpdaterClient.cpp include/UpdaterClient.h
-	$(CXX) $(INCLUDE) -c $< -o $@
+	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) -c $< -o $@
 
-Client-Q6 : src/Client.cpp UpdaterClient.o
-	$(CXX) $(INCLUDE) $^ -o $@	
+Client-Q6 : src/Client.cpp UpdaterClient-Q6.o
+	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) $^ -o $@
+	rm -f *.o	
 
 clean :
+	rm -f *.o *~
+
+cleanAll :
 	rm -f *.o *~
 	rm -f testApp* Updater-Host UpdaterServer AllTests Client UpdaterServer-Q6 Client-Q6
