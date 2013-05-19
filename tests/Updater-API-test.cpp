@@ -25,15 +25,17 @@ TEST_GROUP(UpdaterAPITestGroup){
     pid_t pid; 
     
     void setup(){
-        pid = fork();                                                       // returns pid of the child
-        if (pid == 0){                                                      // in child
-            if(execl("UpdaterServer", "UpdaterServer", "test-new", "test-current", "test-old", "test-rollback", NULL) == -1){
-                perror("error execl in GRANDCHILD");   
+        pid = fork();                                                                       // returns pid of the child
+        if (pid == 0){                                                                      // in child
+            if(execl("UpdaterServer", "UpdaterServer", "test-new", "test-current", 
+                                                       "test-old", "test-rollback", NULL) == -1){
+                perror("error execl in CHILD");   
             }
-        }else if (pid > 0){                                                 // in parent
-            usleep(100000);                                                 // Wait (100 ms)  for the daemon to start (in microsecond)
+        }else if (pid > 0){                                                                 // in parent
+            usleep(100000);                                                                 // Wait (100 ms) for the daemon to start (in microsecond)
         }else{ 
-            //error
+            perror ("fork failed.");
+            exit(1);
         }
         
         mkdir("test-new", S_IRWXU);
@@ -47,7 +49,7 @@ TEST_GROUP(UpdaterAPITestGroup){
         DeleteDirectoryContent("test-current");
         DeleteDirectoryContent("test-old");
         DeleteDirectoryContent("test-rollback");
-        rmdir("test-new");                          // rmdir() : the directory HAS to be empty.
+        rmdir("test-new");                                                                  // rmdir() : the directory HAS to be empty.
         rmdir("test-old");
         rmdir("test-current");
         rmdir("test-rollback");
@@ -58,16 +60,13 @@ TEST(UpdaterAPITestGroup, Connection_Returns_0){
     UpdaterClient client("testApp1");  
     CHECK(client.Connect() == 0); 
     client.Disconnect();
-    remove("testApp1");
 }
-
 TEST(UpdaterAPITestGroup, Connection_Daemon_off_Returns_minus_1){
     kill(pid,9);
     usleep(100000);
     UpdaterClient client("testApp2");
     CHECK(client.Connect() == -1); 
     client.Disconnect();
-    remove("testApp2");
 }
 TEST(UpdaterAPITestGroup, Connection_Rollback_Returns_0){
     mkdir("test-current/DirToRollBack", S_IRWXU);
@@ -75,7 +74,6 @@ TEST(UpdaterAPITestGroup, Connection_Rollback_Returns_0){
     CHECK(client.Connect() == 0);
     CHECK(client.Rollback("DirToRollBack") == 0);
     client.Disconnect();
-    remove("testApp3");
 }
 
 TEST(UpdaterAPITestGroup, Connection_Rollback_nonExistingApp_Returns_minus_1){
@@ -83,13 +81,11 @@ TEST(UpdaterAPITestGroup, Connection_Rollback_nonExistingApp_Returns_minus_1){
     CHECK(client.Connect() == 0);
     CHECK(client.Rollback("DirToRollBack") == -1);
     client.Disconnect();
-    remove("testApp4");
 }
-TEST(UpdaterAPITestGroup, DeamonCrash_API_timeOut_Returns_minus_1){
+TEST(UpdaterAPITestGroup, DeamonCrash_API_timeOut_Returns_minus_1){     // UPDTRAPI-06
     UpdaterClient client("testApp5");
     CHECK(client.Connect() == 0);
-//    CHECK(client.Rollback("TIMEOUT") == -1);
+    CHECK(client.Rollback("TIMEOUT") == -1);
     client.Disconnect();
-    remove("testApp5");
-    FAIL("TODO set TIMEOUT");
+//    FAIL("TODO set TIMEOUT");
 }

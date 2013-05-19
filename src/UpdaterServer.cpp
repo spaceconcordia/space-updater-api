@@ -45,9 +45,8 @@ int main(int argc, char* argv[]){
         path_rollback = argv[4]; 
     }
 
-
-    remove(SERVER_NAME); //Remove socket file to avoid "Already in use" error
-    printf("Launching UpdaterServer\n");
+    remove(SERVER_NAME);                                                            //Remove socket file to avoid "Already in use" error
+    printf("Launching UpdaterServer\n\n");
 
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
         perror ("error creating socket");   
@@ -71,10 +70,8 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     }
 
-
-
+    // Daemon
     while(true){
-        bool isSuccess = false;
         client_length = sizeof(struct sockaddr);
         if ((new_sockfd = accept(sockfd, (struct sockaddr*)&client_addr, &client_length)) == -1){
             perror("accepting");
@@ -83,18 +80,25 @@ int main(int argc, char* argv[]){
         printf("UpdaterHost : got connection from : %s\n", client_addr.sun_path);
          
         recv_length = recv(new_sockfd, &buffer, BUFFER_MAX, 0);
- //       printf("recv : %d bytes\n", recv_length);
- //       printf("%s\n", buffer);
-//------------------        
-// Test timeout
+//       printf("recv : %d bytes\n", recv_length);
+//       printf("%s\n", buffer);
+
+        //*******************************************//
+        #ifdef TEST
         if (strncmp(buffer, "TIMEOUT", 7) == 0 ){
-            printf("IN TIMEOUT\n");
             while(1);
         }
-//------------------        
+        #endif
+        //*******************************************//
+
         int retry = 0; 
+        bool isSuccess = false;
         while (isSuccess == false && retry < MAX_RETRY){
             Updater* updater = new Updater(path_new, path_current, path_old, path_rollback);
+
+            if (retry > 0){
+                printf("retry : %d\n", retry);
+            }
 
             if (updater->StartRollback(buffer) == true){
                 printf("Rollback success : %s, status : %s\n", buffer, rollback_success);
@@ -102,6 +106,7 @@ int main(int argc, char* argv[]){
                     perror ("error sending data");   
                     exit(EXIT_FAILURE);
                 }
+
                 isSuccess = true;           
             }else{
                 printf("Rollback failure : %s, status : %s\n", buffer, rollback_failure);
@@ -113,8 +118,9 @@ int main(int argc, char* argv[]){
 
             delete updater;
             retry += 1;
-
         }
+
+        printf ("Closing socket\n\n");
        close(new_sockfd); 
     }// daemon
 

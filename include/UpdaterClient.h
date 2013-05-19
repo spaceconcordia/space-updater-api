@@ -12,12 +12,15 @@
 /*
     Connect()
         - Connects to the Updater-API
-        - Return : 0 if successful and -1 if an error has occurred.
+        - Returns : 0 if success and -1 if an error has occurred.
 
-
+    Rollback(string applicationName)
+        - Ask Updater-Host to rollback 'applicationName'.
+        - Returns : 0 on success, -1 on failure.
 
 */
 using namespace std;
+
 int NamedSocket(const char *name);
 
 class UpdaterClient{
@@ -33,8 +36,6 @@ class UpdaterClient{
         int Connect();
         int Disconnect();
         int Rollback(string applicationName);
-
-
 };
 
 #endif

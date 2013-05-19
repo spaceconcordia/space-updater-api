@@ -1,6 +1,6 @@
 //******************************************/
 //  JAMG @ SPACE CONCORDIA 2013
-//
+//  Testing the client.
 //
 //******************************************/
 #include "UpdaterClient.h"

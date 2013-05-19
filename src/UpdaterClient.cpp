@@ -38,6 +38,10 @@ int UpdaterClient::Connect(){
         perror("error setting SO_REUSEADDR");
         return -1;
     }
+   struct timeval tv;
+   tv.tv_sec = 2;
+   tv.tv_usec = 0;
+   setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO,(struct timeval *) &tv, sizeof(struct timeval));
     if (bind(sockfd, (struct sockaddr*)&client_addr, sizeof(struct sockaddr)) == -1){
         perror ("error binding to socket");
         return -1;
@@ -47,14 +51,16 @@ int UpdaterClient::Connect(){
         return -1;
     }
 
-    printf("Client connection success\n");
+    printf("Client connection success : %s\n", socketName);
     return 0;
 }
 //----------------------------------------------
 //  Disconnect
 //----------------------------------------------
 int UpdaterClient::Disconnect(){
+    printf ("Closing : %s\n", socketName);
     close(sockfd);
+    remove(socketName);
 }
 //----------------------------------------------
 //  Rollback
@@ -65,7 +71,7 @@ int UpdaterClient::Rollback(string applicationName){
     char report[BUFFER_MAX];
     char buffer[applicationName.length() + 1];
     strcpy (buffer, applicationName.c_str());
-    printf("%s\n", buffer);
+    printf("To Rollback : %s\n", buffer);
 
     if(send(sockfd, buffer, strlen(buffer)+1, 0) == -1){
         perror ("error sending data");   
@@ -74,13 +80,20 @@ int UpdaterClient::Rollback(string applicationName){
     
     int retry  = 0;
     while (isSuccess == false && retry < 5){
+        if (retry > 0){
+            printf ("retry : %d\n", retry);
+        }
+
         int recv_length = recv(sockfd, &report, 8, 0); 
-        printf("recv : %d bytes\n", recv_length);
-        printf("report : %s\n", report);
-     
+//        printf("recv : %d bytes\n", recv_length);
+//        printf("report : %s\n", report);
         if (strncmp(report, "SUCCESS", 7) == 0){
             isSuccess = true;
         }
+        if (recv_length < 0){
+            printf("TimeOut... ");
+        }
+
         retry += 1;
     }
     if (isSuccess == true){
