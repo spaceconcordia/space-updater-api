@@ -21,8 +21,6 @@
 */
 using namespace std;
 
-int NamedSocket(const char *name);
-
 class UpdaterClient{
     private :
         static const char* SERVER_NAME; 

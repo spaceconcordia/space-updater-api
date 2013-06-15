@@ -28,7 +28,7 @@ UpdaterClient::UpdaterClient(const char* socketName){
 //----------------------------------------------
 int UpdaterClient::Connect(){
     int yes = 1;                                                        // to set SO_REUSEADDR
-    remove(socketName);                                                 //Remove socket file to avoid "Already in use" error
+    remove(socketName);                                                 // Remove socket file to avoid "Already in use" error
     
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
         perror ("error creating socket");   

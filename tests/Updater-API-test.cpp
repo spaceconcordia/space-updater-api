@@ -56,27 +56,41 @@ TEST_GROUP(UpdaterAPITestGroup){
     }
 
 };
-TEST(UpdaterAPITestGroup, Connection_Returns_0){
+TEST(UpdaterAPITestGroup, Connection_Returns_0){                        // UPDTRAPI-01
     UpdaterClient client("testApp1");  
     CHECK(client.Connect() == 0); 
     client.Disconnect();
 }
-TEST(UpdaterAPITestGroup, Connection_Daemon_off_Returns_minus_1){
+TEST(UpdaterAPITestGroup, Connection_Daemon_off_Returns_minus_1){       // UPDTRAPI-02
     kill(pid,9);
     usleep(100000);
     UpdaterClient client("testApp2");
     CHECK(client.Connect() == -1); 
     client.Disconnect();
 }
-TEST(UpdaterAPITestGroup, Connection_Rollback_Returns_0){
+TEST(UpdaterAPITestGroup, Connection_Rollback_Returns_0){               // UPDTRAPI-03
     mkdir("test-current/DirToRollBack", S_IRWXU);
+    mkdir("test-old/DirToRollBack", S_IRWXU);
+    FILE* file = fopen("test-old/DirToRollBack/file.txt", "w+");
+    fprintf(file,"some text to test");
+    fclose(file);
+    
     UpdaterClient client("testApp3");
     CHECK(client.Connect() == 0);
     CHECK(client.Rollback("DirToRollBack") == 0);
+    
+    file = fopen("test-current/DirToRollBack/file.txt", "r");
+    CHECK(file != NULL);
+    fclose(file);
+
+    file = fopen("test-old/DirToRollBack/file.txt", "r");
+    CHECK(file != NULL);
+    fclose(file);
+    
     client.Disconnect();
 }
 
-TEST(UpdaterAPITestGroup, Connection_Rollback_nonExistingApp_Returns_minus_1){
+TEST(UpdaterAPITestGroup, Connection_Rollback_nonExistingApp_Returns_minus_1){      //  UPDTRAPI-05
     UpdaterClient client("testApp4");
     CHECK(client.Connect() == 0);
     CHECK(client.Rollback("DirToRollBack") == -1);
@@ -87,5 +101,4 @@ TEST(UpdaterAPITestGroup, DeamonCrash_API_timeOut_Returns_minus_1){     // UPDTR
     CHECK(client.Connect() == 0);
     CHECK(client.Rollback("TIMEOUT") == -1);
     client.Disconnect();
-//    FAIL("TODO set TIMEOUT");
 }
