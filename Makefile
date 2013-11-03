@@ -2,8 +2,8 @@ CXX = g++
 MICRO_BLAZE = microblaze-unknown-linux-gnu-g++
 CPPUTEST_HOME = /home/jamg85/CppUTest
 UPDATER_PATH  = /home/jamg85/Concordia/Space/Updater
-UPDATER_API_PATH = /home/jamg85/Concordia/Space/Updater-API
-SPACE_LIB = /home/jamg85/Git/space-lib
+UPDATER_API_PATH = /home/jamg85/Concordia/Space/Updater-api
+SPACE_LIB = /home/jamg85/git/space-lib
 
 CPPFLAGS += -Wall -I$(CPPUTEST_HOME)/include
 CXXFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorNewMacros.h
