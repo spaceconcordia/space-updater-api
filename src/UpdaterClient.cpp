@@ -69,6 +69,8 @@ int UpdaterClient::Disconnect(){
     printf ("Closing : %s\n", socketName);
     close(sockfd);
     remove(socketName);
+
+    return 0;
 }
 //----------------------------------------------
 //  Rollback

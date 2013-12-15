@@ -9,6 +9,7 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>     // Needed gcc 4.7
 /*
     Connect()
         - Connects to the Updater-API

@@ -34,10 +34,10 @@ int main(int argc, char* argv[]){
 
     if (argc < 5){
     #ifdef allPC
-        path_new      = "/home/jamg85/apps/new";
-        path_current  = "/home/jamg85/apps/current";
-        path_old      = "/home/jamg85/apps/old";
-        path_rollback = "/home/jamg85/apps/rollback";
+        path_new      = "/home/apps/new";
+        path_current  = "/home/apps/current";
+        path_old      = "/home/apps/old";
+        path_rollback = "/home/apps/rollback";
     #endif
     #ifndef allPC                                           // Q6 Paths
         path_new      = "/home/apps/new";

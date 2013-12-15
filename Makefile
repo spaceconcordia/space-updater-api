@@ -1,15 +1,15 @@
 CXX = g++
-MICRO_BLAZE = microblaze-unknown-linux-gnu-g++
-CPPUTEST_HOME = /home/jamg85/CppUTest
-UPDATER_PATH  = /home/jamg85/Concordia/Space/Updater
-UPDATER_API_PATH = /home/jamg85/Concordia/Space/Updater-api
-SPACE_LIB = /home/jamg85/git/space-lib
+MICROCC=microblazeel-xilinx-linux-gnu-g++
+CPPUTEST_HOME = /home/spaceconcordia/space/space-updater-api
+UPDATER_PATH  = /home/spaceconcordia/space/space-updater
+UPDATER_API_PATH = /home/spaceconcordia/space/space-updater-api
+SPACE_LIB = /home/spaceconcordia/space/space-lib
 
 CPPFLAGS += -Wall -I$(CPPUTEST_HOME)/include
 CXXFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorNewMacros.h
 CFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorMallocMacros.h
 LD_LIBRARIES = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
-MICRO_FLAGS = -mcpu=v8.10.a -mxl-barrel-shift -mxl-multiply-high -mxl-pattern-compare -mno-xl-soft-mul -mno-xl-soft-div -mxl-float-sqrt -mhard-float -mxl-float-convert -ffixed-r31 --sysroot /usr/local/lib/mbgcc/microblaze-unknown-linux-gnu/sys-root
+MICROCFLAGS=-mcpu=v8.40.b -mxl-barrel-shift -mxl-multiply-high -mxl-pattern-compare -mno-xl-soft-mul -mno-xl-soft-div -mxl-float-sqrt -mhard-float -mxl-float-convert -mlittle-endian -Wall
 INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/inc 
 LIB =  -L$(SPACE_LIB)/lib
 
@@ -17,69 +17,64 @@ LIB =  -L$(SPACE_LIB)/lib
 #	Compilation for PC
 #
 
-allPC : Client UpdaterServer
-	rm -f *.o
+buildPC : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client 
 
 #
 # 	Compilation for CppUTest
 #
 
-test : AllTests UpdaterServer
-	rm -f *.o
+test : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o AllTests UpdaterServer
 
-AllTests: src/AllTests.cpp tests/Updater-API-test.cpp fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o
-	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o $@ $^ $(LD_LIBRARIES) $(LIB) -lshakespeare
+AllTests: src/AllTests.cpp tests/Updater-API-test.cpp ./bin/fileIO.o ./bin/ProcessUpdater.o ./bin/Updater.o ./bin/UpdaterClient.o
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o ./bin/$@ $^ $(LD_LIBRARIES) $(LIB) -lshakespeare
 
 
 fileIO.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
-	$(CXX) $(INCLUDE) -c $< -o $@
+	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
 
 ProcessUpdater.o : $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(CXX) $(INCLUDE) -c $< -o $@
+	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
 		
 Updater.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(CXX) $(INCLUDE) -c $< -o $@
+	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
 	
-UpdaterServer : src/UpdaterServer.cpp Updater.o fileIO.o ProcessUpdater.o
-	$(CXX) $(INCLUDE) $^ -o $@ -DTEST -DallPC $(LIB) -lshakespeare
+UpdaterServer : src/UpdaterServer.cpp ./bin/Updater.o ./bin/fileIO.o ./bin/ProcessUpdater.o
+	$(CXX) $(INCLUDE) $^ -DTEST -DallPC -o ./bin/$@ $(LIB) -lshakespeare
 	
 UpdaterClient.o : src/UpdaterClient.cpp include/UpdaterClient.h
-	$(CXX) $(INCLUDE) -c $< -o $@
+	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
 
-Client : src/Client.cpp UpdaterClient.o
-	$(CXX) $(INCLUDE) $^ -o $@
+Client : src/Client.cpp ./bin/UpdaterClient.o
+	$(CXX) $(INCLUDE) $^ -o ./bin/$@
 
 #
 #	Compilation for the Q6. Microblaze.
 #
 #
 
-Q6 : UpdaterServer-Q6 Client-Q6
-	rm -f *.o
+buildQ6 : fileIO-Q6.o ProcessUpdater-Q6.o Updater-Q6.o UpdaterClient-Q6.o UpdaterServer-Q6 Client-Q6
 
 fileIO-Q6.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
-	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) -c $< -o $@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
 
 ProcessUpdater-Q6.o :  $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) -c $< -o $@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
 		
 Updater-Q6.o :$(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) -c $< -o $@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
 
-UpdaterServer-Q6 : src/UpdaterServer.cpp Updater-Q6.o fileIO-Q6.o ProcessUpdater-Q6.o
-	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) $^ -o $@ $(LIB) -lshakespeare-mbcc
-	rm -f *.o
+UpdaterServer-Q6 : src/UpdaterServer.cpp ./bin/Updater-Q6.o ./bin/fileIO-Q6.o ./bin/ProcessUpdater-Q6.o
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $^ -o ./bin/$@ $(LIB) -lshakespeare-mbcc
 
 UpdaterClient-Q6.o : src/UpdaterClient.cpp include/UpdaterClient.h
-	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) -c $< -o $@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
 
-Client-Q6 : src/Client.cpp UpdaterClient-Q6.o
-	$(MICRO_BLAZE) $(MICRO_FLAGS) $(INCLUDE) $^ -o $@
-	rm -f *.o	
+Client-Q6 : src/Client.cpp ./bin/UpdaterClient-Q6.o
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $^ -o ./bin/$@
 
 clean :
-	rm -f *.o *~
+	rm -f *.o *~ ./bin/*.o
 
 cleanAll :
-	rm -f *.o *~
-	rm -f testApp* Updater-Host UpdaterServer AllTests Client UpdaterServer-Q6 Client-Q6
+	rm -f *.o *~ ./bin/*.o
+	rm -f ./bin/testApp* ./bin/Updater-Host ./bin/UpdaterServer ./bin/AllTests ./bin/Client ./bin/UpdaterServer-Q6 ./bin/Client-Q6
