@@ -10,8 +10,8 @@ CXXFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorNewMacr
 CFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorMallocMacros.h
 LD_LIBRARIES = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 MICROCFLAGS=-mcpu=v8.40.b -mxl-barrel-shift -mxl-multiply-high -mxl-pattern-compare -mno-xl-soft-mul -mno-xl-soft-div -mxl-float-sqrt -mhard-float -mxl-float-convert -mlittle-endian -Wall
-INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/inc 
-LIB =  -L$(SPACE_LIB)/lib
+INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/shakespeare/inc 
+LIB =  -L$(SPACE_LIB)/shakespeare/lib
 
 #
 #	Compilation for PC
