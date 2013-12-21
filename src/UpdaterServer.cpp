@@ -9,9 +9,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <Updater.h>
+#include <shakespeare.h>
 #include <cstring>
+#include <string>
+using namespace std;
 
 int main(int argc, char* argv[]){
+    FILE* log = NULL;
+    const char* LOG_PATH = "/home/logs";
     const char* SERVER_NAME = "Updater-Host";
     const int BUFFER_MAX = 100;
     const int MAX_RETRY = 5;
@@ -52,10 +57,25 @@ int main(int argc, char* argv[]){
         path_rollback = argv[4]; 
     }
 
+
+    string log_folder(LOG_PATH);
+    string log_path = log_folder.append("/").append(get_filename(log_folder, "UpdaterServer.", ".log").c_str());
+    log = fopen(log_path.c_str(), "w+");
+    
+    if (log == NULL){
+        perror(log_path.c_str());
+        //exit(1); What to do if can't fopen the log file?
+    }
     
 
     remove(SERVER_NAME);                                                            //Remove socket file to avoid "Already in use" error
+
     printf("Launching UpdaterServer\n\n");
+
+    if (log != NULL){
+        Log(log, NOTICE, "UpdaterServer", "Launching UpdaterServer");
+        fflush(log);
+    }
 
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
         perror ("error creating socket");   
@@ -86,7 +106,16 @@ int main(int argc, char* argv[]){
             perror("accepting");
             exit(EXIT_FAILURE);
         }
-        printf("UpdaterHost : got connection from : %s\n", client_addr.sun_path);
+
+        string msg = "UpdaterServer : got connection from : ";
+        msg.append(client_addr.sun_path);
+
+        if (log != NULL){
+            Log(log, NOTICE, "UpdaterServer", msg);
+            fflush(log);
+        }
+
+        printf("%s\n",msg.c_str());
          
         recv_length = recv(new_sockfd, &buffer, BUFFER_MAX, 0);
 //       printf("recv : %d bytes\n", recv_length);
@@ -110,7 +139,17 @@ int main(int argc, char* argv[]){
             }
 
             if (updater->StartRollback(buffer) == true){
-                printf("Rollback success : %s, status : %s\n", buffer, rollback_success);
+                msg = "Rollback success : ";
+                msg.append(buffer);
+                msg.append(", status : ");
+                msg.append(rollback_success);
+                if (log != NULL){
+                    Log(log, NOTICE, "UpdaterServer", msg);
+                    fflush(log);
+                }
+
+                printf("%s\n", msg.c_str());
+
                 if (send(new_sockfd, rollback_success, strlen(rollback_success)+1, 0) == -1){
                     perror ("error sending data");   
                     exit(EXIT_FAILURE);
@@ -129,9 +168,18 @@ int main(int argc, char* argv[]){
             retry += 1;
         }
 
+        if (log != NULL){
+            Log(log, NOTICE, "UpdaterServer", "Closing socket");
+        }
+
         printf ("Closing socket\n\n");
-       close(new_sockfd); 
+        close(new_sockfd); 
     }// daemon
 
     close(sockfd);
+    
+    if (log != NULL){           // close log FILE 
+        fclose(log);
+        log = NULL;
+    }
 }//main
