@@ -36,25 +36,29 @@ int main(int argc, char* argv[]){
     const char* path_current;
     const char* path_old;
     const char* path_rollback;
+    const char* path_logs;
 
-    if (argc < 5){
+    if (argc < 6){
     #ifdef allPC
         path_new      = "/home/apps/new";
         path_current  = "/home/apps/current";
         path_old      = "/home/apps/old";
         path_rollback = "/home/apps/rollback";
+        path_logs     = "/home/logs";
     #endif
     #ifndef allPC                                           // Q6 Paths
         path_new      = "/home/apps/new";
         path_current  = "/home/apps/current";
         path_old      = "/home/apps/old";
         path_rollback = "/home/apps/rollback";
+        path_logs     = "/home/logs";
     #endif
-    }else if (argc == 5){
+    }else if (argc == 6){
         path_new      = argv[1]; 
         path_current  = argv[2]; 
         path_old      = argv[3];
         path_rollback = argv[4]; 
+        path_logs     = argv[5];
     }
 
 
@@ -132,7 +136,7 @@ int main(int argc, char* argv[]){
         int retry = 0; 
         bool isSuccess = false;
         while (isSuccess == false && retry < MAX_RETRY){
-            Updater* updater = new Updater(path_new, path_current, path_old, path_rollback);
+            Updater* updater = new Updater(path_new, path_current, path_old, path_rollback, path_logs);
 
             if (retry > 0){
                 printf("retry : %d\n", retry);

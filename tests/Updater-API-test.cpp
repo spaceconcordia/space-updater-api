@@ -25,10 +25,16 @@ TEST_GROUP(UpdaterAPITestGroup){
     pid_t pid; 
     
     void setup(){
+        mkdir("test-new", S_IRWXU);
+        mkdir("test-current", S_IRWXU);
+        mkdir("test-old", S_IRWXU);
+        mkdir("test-rollback", S_IRWXU);
+        mkdir("test-logs", S_IRWXU);
+
         pid = fork();                                                                       // returns pid of the child
         if (pid == 0){                                                                      // in child
             if(execl("UpdaterServer", "UpdaterServer", "test-new", "test-current", 
-                                                       "test-old", "test-rollback", NULL) == -1){
+                                                       "test-old", "test-rollback", "test-logs", NULL) == -1){
                 perror("error execl in CHILD");   
             }
         }else if (pid > 0){                                                                 // in parent
@@ -37,11 +43,6 @@ TEST_GROUP(UpdaterAPITestGroup){
             perror ("fork failed.");
             exit(1);
         }
-        
-        mkdir("test-new", S_IRWXU);
-        mkdir("test-current", S_IRWXU);
-        mkdir("test-old", S_IRWXU);
-        mkdir("test-rollback", S_IRWXU);
     }
     void teardown(){
         kill(pid, 9);
@@ -49,10 +50,12 @@ TEST_GROUP(UpdaterAPITestGroup){
         DeleteDirectoryContent("test-current");
         DeleteDirectoryContent("test-old");
         DeleteDirectoryContent("test-rollback");
+        DeleteDirectoryContent("test-logs");
         rmdir("test-new");                                                                  // rmdir() : the directory HAS to be empty.
         rmdir("test-old");
         rmdir("test-current");
         rmdir("test-rollback");
+        rmdir("test-logs");
     }
 
 };
