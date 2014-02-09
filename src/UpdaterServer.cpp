@@ -20,7 +20,7 @@ int main(int argc, char* argv[]){
     const char* SERVER_NAME = "Updater-Host";
     const int BUFFER_MAX = 100;
     const int MAX_RETRY = 5;
-    
+
     char buffer[BUFFER_MAX];
     const char* rollback_success = "SUCCESS";
     const char* rollback_failure = "FAILURE";
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
     struct sockaddr_un client_addr;
     struct sockaddr_un   host_addr;
 
-    const char* path_new;      
+    const char* path_new;
     const char* path_current;
     const char* path_old;
     const char* path_rollback;
@@ -54,38 +54,31 @@ int main(int argc, char* argv[]){
         path_logs     = "/home/logs";
     #endif
     }else if (argc == 6){
-        path_new      = argv[1]; 
-        path_current  = argv[2]; 
+        path_new      = argv[1];
+        path_current  = argv[2];
         path_old      = argv[3];
-        path_rollback = argv[4]; 
+        path_rollback = argv[4];
         path_logs     = argv[5];
     }
 
 
     string log_folder(LOG_PATH);
-    string log_path = log_folder.append("/").append(get_filename(log_folder, "UpdaterServer.", ".log").c_str());
-    log = fopen(log_path.c_str(), "w+");
-    
-    if (log == NULL){
-        perror(log_path.c_str());
-        //exit(1); What to do if can't fopen the log file?
-    }
-    
+    log = Shakespeare::open_log(log_folder, "UpdaterServer");
 
     remove(SERVER_NAME);                                                            //Remove socket file to avoid "Already in use" error
 
     printf("Launching UpdaterServer\n\n");
 
     if (log != NULL){
-        Log(log, NOTICE, "UpdaterServer", "Launching UpdaterServer");
+        Shakespeare::log(log, Shakespeare::NOTICE, "UpdaterServer", "Launching UpdaterServer");
         fflush(log);
     }
 
     if ((sockfd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1){
-        perror ("error creating socket");   
+        perror ("error creating socket");
         exit(EXIT_FAILURE);
     }
-    
+
     bzero((char *)&host_addr, sizeof(host_addr));
     host_addr.sun_family = AF_UNIX;
     strcpy(host_addr.sun_path, SERVER_NAME);
@@ -115,12 +108,12 @@ int main(int argc, char* argv[]){
         msg.append(client_addr.sun_path);
 
         if (log != NULL){
-            Log(log, NOTICE, "UpdaterServer", msg);
+            Shakespeare::log(log, Shakespeare::NOTICE, "UpdaterServer", msg);
             fflush(log);
         }
 
         printf("%s\n",msg.c_str());
-         
+
         recv_length = recv(new_sockfd, &buffer, BUFFER_MAX, 0);
 //       printf("recv : %d bytes\n", recv_length);
 //       printf("%s\n", buffer);
@@ -133,7 +126,7 @@ int main(int argc, char* argv[]){
         #endif
         //*******************************************//
 
-        int retry = 0; 
+        int retry = 0;
         bool isSuccess = false;
         while (isSuccess == false && retry < MAX_RETRY){
             Updater* updater = new Updater(path_new, path_current, path_old, path_rollback, path_logs);
@@ -148,22 +141,22 @@ int main(int argc, char* argv[]){
                 msg.append(", status : ");
                 msg.append(rollback_success);
                 if (log != NULL){
-                    Log(log, NOTICE, "UpdaterServer", msg);
+                    Shakespeare::log(log, Shakespeare::NOTICE, "UpdaterServer", msg);
                     fflush(log);
                 }
 
                 printf("%s\n", msg.c_str());
 
                 if (send(new_sockfd, rollback_success, strlen(rollback_success)+1, 0) == -1){
-                    perror ("error sending data");   
+                    perror ("error sending data");
                     exit(EXIT_FAILURE);
                 }
 
-                isSuccess = true;           
+                isSuccess = true;
             }else{
                 printf("Rollback failure : %s, status : %s\n", buffer, rollback_failure);
                 if (send(new_sockfd, rollback_failure, strlen(rollback_failure)+1, 0) == -1){
-                    perror ("error sending data");   
+                    perror ("error sending data");
                     exit(EXIT_FAILURE);
                 }
             }
@@ -173,16 +166,16 @@ int main(int argc, char* argv[]){
         }
 
         if (log != NULL){
-            Log(log, NOTICE, "UpdaterServer", "Closing socket");
+            Shakespeare::log(log, Shakespeare::NOTICE, "UpdaterServer", "Closing socket");
         }
 
         printf ("Closing socket\n\n");
-        close(new_sockfd); 
+        close(new_sockfd);
     }// daemon
 
     close(sockfd);
-    
-    if (log != NULL){           // close log FILE 
+
+    if (log != NULL){           // close log FILE
         fclose(log);
         log = NULL;
     }

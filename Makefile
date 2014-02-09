@@ -1,23 +1,23 @@
 CXX = g++
 MICROCC=microblazeel-xilinx-linux-gnu-g++
 CPPUTEST_HOME = /home/spaceconcordia/space/space-updater-api
-UPDATER_PATH  = /home/spaceconcordia/space/space-updater
-UPDATER_API_PATH = /home/spaceconcordia/space/space-updater-api
-SPACE_LIB = /home/spaceconcordia/space/space-lib
+UPDATER_PATH  = ../space-updater
+UPDATER_API_PATH = ../space-updater-api
+SPACE_LIB = ../space-lib
 
 CPPFLAGS += -Wall -I$(CPPUTEST_HOME)/include
 CXXFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorNewMacros.h
 CFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorMallocMacros.h
 LD_LIBRARIES = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 MICROCFLAGS=-mcpu=v8.40.b -mxl-barrel-shift -mxl-multiply-high -mxl-pattern-compare -mno-xl-soft-mul -mno-xl-soft-div -mxl-float-sqrt -mhard-float -mxl-float-convert -mlittle-endian -Wall
-INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/shakespeare/inc 
+INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/shakespeare/inc
 LIB =  -L$(SPACE_LIB)/shakespeare/lib
 
 #
 #	Compilation for PC
 #
 
-buildPC : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client 
+buildPC : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
 
 #
 # 	Compilation for CppUTest
@@ -34,13 +34,13 @@ fileIO.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
 
 ProcessUpdater.o : $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
-		
+
 Updater.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
-	
+
 UpdaterServer : src/UpdaterServer.cpp ./bin/Updater.o ./bin/fileIO.o ./bin/ProcessUpdater.o
 	$(CXX) $(INCLUDE) $^ -DTEST -DallPC -o ./bin/$@ $(LIB) -lshakespeare
-	
+
 UpdaterClient.o : src/UpdaterClient.cpp include/UpdaterClient.h
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
 
@@ -59,7 +59,7 @@ fileIO-Q6.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
 
 ProcessUpdater-Q6.o :  $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
 	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
-		
+
 Updater-Q6.o :$(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
 	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
 
