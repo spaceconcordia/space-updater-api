@@ -1,5 +1,6 @@
 CXX = g++
 MICROCC=microblazeel-xilinx-linux-gnu-g++
+BB = arm-linux-gnueabi-g++
 CPPUTEST_HOME = /home/spaceconcordia/space/space-updater-api
 UPDATER_PATH  = ../space-updater
 UPDATER_API_PATH = ../space-updater-api
@@ -27,7 +28,6 @@ test : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o AllTests UpdaterServe
 
 AllTests: src/AllTests.cpp tests/Updater-API-test.cpp ./bin/fileIO.o ./bin/ProcessUpdater.o ./bin/Updater.o ./bin/UpdaterClient.o
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o ./bin/$@ $^ $(LD_LIBRARIES) $(LIB) -lshakespeare
-
 
 fileIO.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
@@ -71,6 +71,34 @@ UpdaterClient-Q6.o : src/UpdaterClient.cpp include/UpdaterClient.h
 
 Client-Q6 : src/Client.cpp ./bin/UpdaterClient-Q6.o
 	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $^ -o ./bin/$@
+
+#
+#	Compilation for Beaglebone Black
+#
+
+buildBB : fileIO-bb.o ProcessUpdater-bb.o Updater-bb.o UpdaterClient-bb.o UpdaterServer-bb Client-bb
+
+#
+# 	Compilation for CppUTest
+#
+
+fileIO-bb.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
+	$(BB) $(INCLUDE) -c $< -o ./bin/$@
+
+ProcessUpdater-bb.o : $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
+	$(BB) $(INCLUDE) -c $< -o ./bin/$@
+
+Updater-bb.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
+	$(BB) $(INCLUDE) -c $< -o ./bin/$@
+
+UpdaterServer-bb : src/UpdaterServer.cpp ./bin/Updater-bb.o ./bin/fileIO-bb.o ./bin/ProcessUpdater-bb.o
+	$(BB) $(INCLUDE) $^ -o ./bin/$@ $(LIB) -lshakespeare-BB
+
+UpdaterClient-bb.o : src/UpdaterClient.cpp include/UpdaterClient.h
+	$(BB) $(INCLUDE) -c $< -o ./bin/$@
+
+Client-bb : src/Client.cpp ./bin/UpdaterClient-bb.o
+	$(BB) $(INCLUDE) $^ -o ./bin/$@
 
 clean :
 	rm -f *.o *~ ./bin/*.o
