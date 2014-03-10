@@ -1,7 +1,7 @@
 CXX = g++
 MICROCC=microblazeel-xilinx-linux-gnu-g++
 BB = arm-linux-gnueabi-g++
-CPPUTEST_HOME = /home/spaceconcordia/space/space-updater-api
+CPPUTEST_HOME = ./
 UPDATER_PATH  = ../space-updater
 UPDATER_API_PATH = ../space-updater-api
 SPACE_LIB = ../space-lib
