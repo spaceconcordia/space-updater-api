@@ -1,3 +1,6 @@
-*swp
-bin
+bin/
+*.swp
+*.swo
 *~
+include/CppU*
+lib/libCppUTest*
