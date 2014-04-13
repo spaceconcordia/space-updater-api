@@ -18,7 +18,7 @@ LIB =  -L$(SPACE_LIB)/shakespeare/lib
 #	Compilation for PC
 #
 
-buildPC : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
+buildBin : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
 
 #
 # 	Compilation for CppUTest
