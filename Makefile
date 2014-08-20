@@ -16,16 +16,22 @@ INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)
 LIB =  -L$(SPACE_LIB)/shakespeare/lib
 
 #
+# conveniently create the bin directory
+#
+make_dir:
+	mkdir -p bin 
+
+#
 #	Compilation for PC
 #
 
-buildBin : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
+buildBin : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
 
 #
 # 	Compilation for CppUTest
 #
 
-test : fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o AllTests UpdaterServer
+test : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o AllTests UpdaterServer
 
 AllTests: src/AllTests.cpp tests/Updater-API-test.cpp ./bin/fileIO.o ./bin/ProcessUpdater.o ./bin/Updater.o ./bin/UpdaterClient.o
 	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o ./bin/$@ $^ $(LD_LIBRARIES) $(LIB) -lshakespeare
@@ -56,7 +62,7 @@ Client : src/Client.cpp ./bin/UpdaterClient.o
 #
 #
 
-buildQ6 : fileIO-Q6.o ProcessUpdater-Q6.o bin/DateQ6.o Updater-Q6.o UpdaterClient-Q6.o UpdaterServer-Q6 Client-Q6
+buildQ6 : make_dir fileIO-Q6.o ProcessUpdater-Q6.o bin/DateQ6.o Updater-Q6.o UpdaterClient-Q6.o UpdaterServer-Q6 Client-Q6
 
 fileIO-Q6.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
 	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
@@ -83,7 +89,7 @@ Client-Q6 : src/Client.cpp ./bin/UpdaterClient-Q6.o
 #	Compilation for Beaglebone Black
 #
 
-buildBB : fileIO-bb.o ProcessUpdater-bb.o Updater-bb.o UpdaterClient-bb.o UpdaterServer-bb Client-bb
+buildBB : make_dir fileIO-bb.o ProcessUpdater-bb.o Updater-bb.o UpdaterClient-bb.o UpdaterServer-bb Client-bb
 
 #
 # 	Compilation for CppUTest
