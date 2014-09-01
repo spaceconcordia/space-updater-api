@@ -12,8 +12,9 @@ CXXFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorNewMacr
 CFLAGS += -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorMallocMacros.h
 LD_LIBRARIES = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 MICROCFLAGS=-mcpu=v8.40.b -mxl-barrel-shift -mxl-multiply-high -mxl-pattern-compare -mno-xl-soft-mul -mno-xl-soft-div -mxl-float-sqrt -mhard-float -mxl-float-convert -mlittle-endian -Wall
-INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/include -I$(SPACE_LIB)/shakespeare/inc
-LIB =  -L$(SPACE_LIB)/shakespeare/lib
+
+INCLUDE = -I$(UPDATER_API_PATH)/include -I$(UPDATER_PATH)/include -I$(SPACE_LIB)/include -I$(SPACE_LIB)/utls/include -I$(SPACE_LIB)/shakespeare/inc
+LIB_PATH =  -L$(SPACE_LIB)/shakespeare/lib -L$(SPACE_LIB)/utls/lib
 
 #
 # conveniently create the bin directory
@@ -24,6 +25,7 @@ make_dir:
 #
 #	Compilation for PC
 #
+LIBS = -lshakespeare -lcs1_utls
 
 buildBin : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
 
@@ -34,10 +36,7 @@ buildBin : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterS
 test : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o AllTests UpdaterServer
 
 AllTests: src/AllTests.cpp tests/Updater-API-test.cpp ./bin/fileIO.o ./bin/ProcessUpdater.o ./bin/Updater.o ./bin/UpdaterClient.o
-	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o ./bin/$@ $^ $(LD_LIBRARIES) $(LIB) -lshakespeare
-
-bin/Date.o : $(UTLS_DIR)/src/Date.cpp $(UTLS_DIR)/include/Date.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) -I$(UTLS_DIR)/include/ $(CXXFLAGS) -c $(UTLS_DIR)/src/Date.cpp -o $@
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o ./bin/$@ $^ $(LD_LIBRARIES) $(LIB_PATH) $(LIBS)
 
 fileIO.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
@@ -49,7 +48,7 @@ Updater.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
 
 UpdaterServer : src/UpdaterServer.cpp bin/Date.o ./bin/Updater.o ./bin/fileIO.o ./bin/ProcessUpdater.o
-	$(CXX) $(INCLUDE) $^ -DTEST -DallPC -o ./bin/$@ $(LIB) -lshakespeare
+	$(CXX) $(INCLUDE) $^ -DTEST -DallPC -o ./bin/$@ $(LIB_PATH) -lshakespeare $(LIBS)
 
 UpdaterClient.o : src/UpdaterClient.cpp include/UpdaterClient.h
 	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
@@ -61,29 +60,27 @@ Client : src/Client.cpp ./bin/UpdaterClient.o
 #	Compilation for the Q6. Microblaze.
 #
 #
+LIBS_Q6 =  -lshakespeare-mbcc -lcs1_utlsQ6
 
-buildQ6 : make_dir fileIO-Q6.o ProcessUpdater-Q6.o bin/DateQ6.o Updater-Q6.o UpdaterClient-Q6.o UpdaterServer-Q6 Client-Q6
+buildQ6 : make_dir fileIO-Q6.o ProcessUpdater-Q6.o Updater-Q6.o UpdaterClient-Q6.o UpdaterServer-Q6 Client-Q6
 
 fileIO-Q6.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
-	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
-
-bin/DateQ6.o : $(UTLS_DIR)/src/Date.cpp $(UTLS_DIR)/include/Date.h $(GTEST_HEADERS)
-	$(MICROCC) $(CPPFLAGS) -I$(UTLS_DIR)/include/ $(CXXFLAGS) -c $(UTLS_DIR)/src/Date.cpp -o $@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@ $(LIBS_Q6)
 
 ProcessUpdater-Q6.o :  $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $(LIB_PATH) -c $< -o ./bin/$@ $(LIBS_Q6)
 
 Updater-Q6.o :$(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $(LIB_PATH) -c $< -o ./bin/$@ $(LIBS_Q6)
 
 UpdaterServer-Q6 : src/UpdaterServer.cpp ./bin/Updater-Q6.o ./bin/fileIO-Q6.o ./bin/ProcessUpdater-Q6.o
-	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $^ -o ./bin/$@ $(LIB) -lshakespeare-mbcc
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $(LIB_PATH) $^ -o ./bin/$@  $(LIBS_Q6) 
 
 UpdaterClient-Q6.o : src/UpdaterClient.cpp include/UpdaterClient.h
-	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) -c $< -o ./bin/$@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $(LIB_PATH) -c $< -o ./bin/$@ $(LIBS_Q6) 
 
 Client-Q6 : src/Client.cpp ./bin/UpdaterClient-Q6.o
-	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $^ -o ./bin/$@
+	$(MICROCC) $(MICROCFLAGS) $(INCLUDE) $(LIB_PATH) $^ -o ./bin/$@ $(LIBS_Q6) 
 
 #
 #	Compilation for Beaglebone Black
@@ -105,7 +102,7 @@ Updater-bb.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h
 	$(BB) $(INCLUDE) -c $< -o ./bin/$@
 
 UpdaterServer-bb : src/UpdaterServer.cpp ./bin/Updater-bb.o ./bin/fileIO-bb.o ./bin/ProcessUpdater-bb.o
-	$(BB) $(INCLUDE) $^ -o ./bin/$@ $(LIB) -lshakespeare-BB
+	$(BB) $(INCLUDE) $^ -o ./bin/$@ $(LIB_PATH) -lshakespeare-BB
 
 UpdaterClient-bb.o : src/UpdaterClient.cpp include/UpdaterClient.h
 	$(BB) $(INCLUDE) -c $< -o ./bin/$@
