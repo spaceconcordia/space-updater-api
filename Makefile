@@ -27,34 +27,34 @@ make_dir:
 #
 LIBS = -lshakespeare -lcs1_utls
 
-buildBin : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o UpdaterServer Client
+buildBin : make_dir bin/fileIO.o bin/ProcessUpdater.o bin/Updater.o bin/UpdaterClient.o bin/UpdaterServer bin/Client
 
 #
 # 	Compilation for CppUTest
 #
 
-test : make_dir fileIO.o ProcessUpdater.o Updater.o UpdaterClient.o AllTests UpdaterServer
+test : make_dir bin/fileIO.o bin/ProcessUpdater.o bin/Updater.o bin/UpdaterClient.o bin/AllTests bin/UpdaterServer
 
-AllTests: src/AllTests.cpp tests/Updater-API-test.cpp ./bin/fileIO.o ./bin/ProcessUpdater.o ./bin/Updater.o ./bin/UpdaterClient.o
-	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o ./bin/$@ $^ $(LD_LIBRARIES) $(LIB_PATH) $(LIBS)
+bin/AllTests: src/AllTests.cpp tests/Updater-API-test.cpp bin/fileIO.o bin/ProcessUpdater.o bin/Updater.o bin/UpdaterClient.o
+	$(CXX) $(CFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDE) -o $@ $^ $(LD_LIBRARIES) $(LIB_PATH) $(LIBS)
 
-fileIO.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
-	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
+bin/fileIO.o: $(UPDATER_PATH)/src/fileIO.cpp $(UPDATER_PATH)/include/fileIO.h
+	$(CXX) $(INCLUDE) -c $< -o $@
 
-ProcessUpdater.o : $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
+bin/ProcessUpdater.o : $(UPDATER_PATH)/src/ProcessUpdater.cpp $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
+	$(CXX) $(INCLUDE) -c $< -o $@
 
-Updater.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
-	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
+bin/Updater.o : $(UPDATER_PATH)/src/Updater.cpp $(UPDATER_PATH)/include/Updater.h  $(UPDATER_PATH)/include/ProcessUpdater.h $(UPDATER_PATH)/include/fileIO.h
+	$(CXX) $(INCLUDE) -c $< -o $@
 
-UpdaterServer : src/UpdaterServer.cpp bin/Date.o ./bin/Updater.o ./bin/fileIO.o ./bin/ProcessUpdater.o
-	$(CXX) $(INCLUDE) $^ -DTEST -DallPC -o ./bin/$@ $(LIB_PATH) -lshakespeare $(LIBS)
+bin/UpdaterServer : src/UpdaterServer.cpp bin/Updater.o bin/fileIO.o bin/ProcessUpdater.o
+	$(CXX) $(INCLUDE) $^ -DTEST -DallPC -o $@ $(LIB_PATH) -lshakespeare $(LIBS)
 
-UpdaterClient.o : src/UpdaterClient.cpp include/UpdaterClient.h
-	$(CXX) $(INCLUDE) -c $< -o ./bin/$@
+bin/UpdaterClient.o : src/UpdaterClient.cpp include/UpdaterClient.h
+	$(CXX) $(INCLUDE) -c $< -o $@
 
-Client : src/Client.cpp ./bin/UpdaterClient.o
-	$(CXX) $(INCLUDE) $^ -o ./bin/$@
+bin/Client : src/Client.cpp ./bin/UpdaterClient.o
+	$(CXX) $(INCLUDE) $^ -o $@
 
 #
 #	Compilation for the Q6. Microblaze.
